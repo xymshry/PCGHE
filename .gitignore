@@ -1,0 +1,22 @@
+# Local environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Downloaded upstream source archives (kept locally for reference)
+/references/
+
+# MIT-BIH data and generated research artifacts
+/data/
+/cache/
+/results/
+/artifacts/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
