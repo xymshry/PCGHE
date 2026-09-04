@@ -294,6 +294,47 @@ python --version
 python -m pytest
 ```
 
+### Keep Anaconda in the user directory and put the environment on the project disk
+
+The Conda installation directory, project directory, and environment directory
+can be different. This is useful when the user home directory is full. For
+example, if Anaconda is installed at `/home/C/xieyiming/anaconda3` but the
+project disk is `/home/C/xieyiming/PCGHE`, run:
+
+```bash
+CONDA_BASE_DIR=/home/C/xieyiming/anaconda3
+source "$CONDA_BASE_DIR/etc/profile.d/conda.sh"
+
+cd /home/C/xieyiming/PCGHE
+export CONDA_PKGS_DIRS="$PWD/.conda-pkgs"
+export PIP_CACHE_DIR="$PWD/.pip-cache"
+ENV_PREFIX="$PWD/.conda-env"
+
+conda create --prefix "$ENV_PREFIX" python=3.11 pip -y
+conda activate "$ENV_PREFIX"
+python -m pip install -e ".[dev]"
+python -m pytest
+pcghe-ecg --help
+```
+
+The `conda create --prefix` command puts the environment inside the project
+directory instead of Conda's default `~/.conda/envs`. The two cache variables
+also keep downloaded Conda and pip packages off the full home partition. The
+directories `.conda-env/`, `.conda-pkgs/`, and `.pip-cache/` are ignored by Git.
+
+For later sessions, load Anaconda and activate the same environment with its
+absolute path:
+
+```bash
+source /home/C/xieyiming/anaconda3/etc/profile.d/conda.sh
+cd /home/C/xieyiming/PCGHE
+conda activate "$PWD/.conda-env"
+```
+
+If your Anaconda path is different, replace `/home/C/xieyiming/anaconda3` with
+the directory that contains `bin/conda`. The project does not need to be moved
+into the Anaconda directory.
+
 To make the command available automatically in future Bash sessions, run:
 
 ```bash
