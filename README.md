@@ -236,6 +236,11 @@ benchmark.
 This method does not use the system Python, `ensurepip`, or the Ubuntu APT
 mirror:
 
+> If your Anaconda installation is in another user's/home partition and your
+> own home directory is full, skip the named-environment commands in this
+> section. Use [Use another location's Conda without making it global](#use-another-locations-conda-without-making-it-global)
+> below. That procedure puts the environment and caches on the PCGHE disk.
+
 ```bash
 git clone https://github.com/xymshry/PCGHE.git
 cd PCGHE
@@ -334,6 +339,60 @@ conda activate "$PWD/.conda-env"
 If your Anaconda path is different, replace `/home/C/xieyiming/anaconda3` with
 the directory that contains `bin/conda`. The project does not need to be moved
 into the Anaconda directory.
+
+### Use another location's Conda without making it global
+
+If Conda is found at `/home/A/xieyiming/anaconda3/bin/conda` while PCGHE must
+run under `/home/C/xieyiming/PCGHE`, do not run `conda init`, do not edit the
+system `PATH`, and do not source Conda's shell hook. Invoke that executable by
+its absolute path only to create a project-local environment:
+
+```bash
+cd /home/C/xieyiming/PCGHE
+
+CONDA_EXE=/home/A/xieyiming/anaconda3/bin/conda
+ENV_PREFIX="$PWD/.conda-env"
+export CONDA_PKGS_DIRS="$PWD/.conda-pkgs"
+export PIP_CACHE_DIR="$PWD/.pip-cache"
+
+"$CONDA_EXE" --version
+"$CONDA_EXE" create --prefix "$ENV_PREFIX" -c conda-forge python=3.11 pip -y
+"$ENV_PREFIX/bin/python" -m pip install -e ".[dev]"
+"$ENV_PREFIX/bin/python" -m pytest
+"$ENV_PREFIX/bin/pcghe-ecg" --help
+```
+
+This does not register Conda for all users. The `/home/A` installation is used
+only as the executable that creates and runs `/home/C/xieyiming/PCGHE/.conda-env`.
+All project packages and caches remain under `/home/C/xieyiming/PCGHE`.
+
+The commands deliberately use the environment's absolute Python path after
+creation. They therefore do not require `conda activate`, `conda init`, or a
+shell hook.
+
+After creation, Conda is not required to run the installed program. Call the
+environment executables directly:
+
+```bash
+cd /home/C/xieyiming/PCGHE
+.conda-env/bin/python -m pytest
+.conda-env/bin/pcghe-ecg --help
+.conda-env/bin/pcghe-ecg download --data-dir data/mitdb
+.conda-env/bin/pcghe-ecg run \
+  --data-dir data/mitdb \
+  --output-dir results/main \
+  --feature dwt \
+  --pca-components 32
+```
+
+Before using an Anaconda installation owned by another account, check that it
+is readable and executable, but do not change its permissions or ownership:
+
+```bash
+test -x /home/A/xieyiming/anaconda3/bin/conda \
+  && echo "Conda executable is available" \
+  || echo "Conda executable is not usable by this account"
+```
 
 To make the command available automatically in future Bash sessions, run:
 
