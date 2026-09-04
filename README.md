@@ -1,5 +1,7 @@
 # PCGHE: Plaintext ECG Baseline for CKKS Inference
 
+[![CI](https://github.com/xymshry/PCGHE/actions/workflows/ci.yml/badge.svg)](https://github.com/xymshry/PCGHE/actions/workflows/ci.yml)
+
 PCGHE is a reproducible plaintext baseline for a privacy-preserving ECG
 classification study. It converts annotated heartbeats from the MIT-BIH
 Arrhythmia Database into a compact feature vector and trains a linear model
@@ -201,16 +203,49 @@ review, but it is intentionally excluded from Git. The `data/`, `cache/`,
 `results/`, `.venv/`, and generated package metadata directories are also
 ignored.
 
+## Platform support
+
+The Python implementation is platform-independent and supports Linux and
+Windows. It uses `pathlib` for paths, the non-interactive Matplotlib `Agg`
+backend for plots, and a Python console entry point instead of an operating
+system-specific launcher. Every push is tested on Ubuntu and Windows with
+Python 3.10 and 3.13 by GitHub Actions.
+
+No C/C++ compilation is normally required because the supported Python
+versions have binary wheels for NumPy, SciPy, PyWavelets, pandas,
+scikit-learn, Matplotlib, and WFDB. On a minimal Debian/Ubuntu installation,
+install the virtual-environment package first if `python3 -m venv` is missing:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y python3-venv
+```
+
 ## Installation
 
 Python 3.10 or newer is required. Python 3.14.5 was used for the included
-benchmark. From PowerShell:
+benchmark.
+
+### Linux
+
+```bash
+git clone https://github.com/xymshry/PCGHE.git
+cd PCGHE
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+### Windows PowerShell
 
 ```powershell
-cd C:\Users\truem\Desktop\PCGHE
+git clone https://github.com/xymshry/PCGHE.git
+cd PCGHE
 python -m venv .venv
-.venv\Scripts\python -m pip install --upgrade pip
-.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 ```
 
 The main dependencies are:
@@ -227,13 +262,17 @@ matplotlib     ROC, precision-recall, and confusion-matrix plots
 
 ## Quick start
 
+The commands below are identical on Linux and Windows after activating the
+virtual environment as shown above. Forward-slash paths are accepted on both
+platforms.
+
 ### 1. Download MIT-BIH
 
 The downloader is resumable: existing non-empty files are reused and failed
 HTTP requests are retried.
 
-```powershell
-.venv\Scripts\pcghe-ecg download --data-dir data\mitdb
+```bash
+pcghe-ecg download --data-dir data/mitdb
 ```
 
 The download requires access to PhysioNet. ECG data are not included in this
@@ -241,23 +280,15 @@ repository and must not be committed to Git.
 
 ### 2. Run the main plaintext experiment
 
-```powershell
-.venv\Scripts\pcghe-ecg run `
-  --data-dir data\mitdb `
-  --output-dir results\main `
-  --feature dwt `
-  --pca-components 32
+```bash
+pcghe-ecg run --data-dir data/mitdb --output-dir results/main --feature dwt --pca-components 32
 ```
 
 The default cache is `cache/mitdb_nv_beats.npz`. To rebuild it after changing
 the signal protocol:
 
-```powershell
-.venv\Scripts\pcghe-ecg run `
-  --data-dir data\mitdb `
-  --cache-file cache\mitdb_nv_beats.npz `
-  --force-cache `
-  --output-dir results\main
+```bash
+pcghe-ecg run --data-dir data/mitdb --cache-file cache/mitdb_nv_beats.npz --force-cache --output-dir results/main
 ```
 
 To run raw beats rather than DWT features, use `--feature raw`. To omit PCA,
@@ -265,29 +296,22 @@ use `--no-pca`.
 
 ### 3. Run all baselines
 
-```powershell
-.venv\Scripts\pcghe-ecg baselines `
-  --data-dir data\mitdb `
-  --output-dir results\baselines
+```bash
+pcghe-ecg baselines --data-dir data/mitdb --output-dir results/baselines
 ```
 
 This runs `raw_no_pca`, `raw_pca32`, `dwt_no_pca`, and `dwt_pca32`.
 
 ### 4. Run the PCA dimension sweep
 
-```powershell
-.venv\Scripts\pcghe-ecg sweep `
-  --data-dir data\mitdb `
-  --output-dir results\dimension_sweep
+```bash
+pcghe-ecg sweep --data-dir data/mitdb --output-dir results/dimension_sweep
 ```
 
 To use a smaller custom sweep:
 
-```powershell
-.venv\Scripts\pcghe-ecg sweep `
-  --data-dir data\mitdb `
-  --output-dir results\dimension_sweep_small `
-  --dimensions 16 32 64
+```bash
+pcghe-ecg sweep --data-dir data/mitdb --output-dir results/dimension_sweep_small --dimensions 16 32 64
 ```
 
 ### 5. Run tests
@@ -295,8 +319,8 @@ To use a smaller custom sweep:
 The tests use synthetic signals and mocked WFDB records, so they do not need
 the MIT-BIH download:
 
-```powershell
-.venv\Scripts\python -m pytest
+```bash
+python -m pytest
 ```
 
 ## Output files
