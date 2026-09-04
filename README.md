@@ -245,6 +245,63 @@ python --version
 pcghe-ecg --help
 ```
 
+If the shell prints `conda: command not found`, Conda is either not installed
+or its shell hook has not been loaded. Check for an existing installation
+first:
+
+```bash
+command -v conda || true
+find "$HOME" /opt -type f -path "*/bin/conda" 2>/dev/null | head
+```
+
+If a path is found, load that installation for the current Bash session. For
+example, if the result is `/opt/miniconda3/bin/conda`:
+
+```bash
+source /opt/miniconda3/etc/profile.d/conda.sh
+conda activate
+```
+
+If no path is found, install Miniconda in your home directory. This does not
+require `apt`, `sudo`, `ensurepip`, or a system Python package:
+
+```bash
+cd /tmp
+curl -fL -o miniconda.sh \
+  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash miniconda.sh -b -p "$HOME/miniconda3"
+eval "$("$HOME/miniconda3/bin/conda" shell.bash hook)"
+conda --version
+```
+
+For an ARM64 machine, replace `Linux-x86_64` with `Linux-aarch64` in the
+download URL. If `curl` is unavailable, use `wget -O miniconda.sh URL` instead.
+If the download is blocked, configure the same HTTP/HTTPS proxy used by the
+server before running `curl`, for example:
+
+```bash
+export http_proxy=http://192.168.104.9:7890
+export https_proxy=http://192.168.104.9:7890
+```
+
+Then return to the project and create the PCGHE environment:
+
+```bash
+cd /home/C/xieyiming/PCGHE
+conda env create -f environment.yml
+conda activate pcghe
+python --version
+python -m pytest
+```
+
+To make the command available automatically in future Bash sessions, run:
+
+```bash
+conda init bash
+exec bash
+conda activate pcghe
+```
+
 The environment file creates an isolated environment named `pcghe` with
 Python 3.11 and installs this project in editable mode with its test
 dependencies.
