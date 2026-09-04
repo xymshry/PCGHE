@@ -209,7 +209,8 @@ The Python implementation is platform-independent and supports Linux and
 Windows. It uses `pathlib` for paths, the non-interactive Matplotlib `Agg`
 backend for plots, and a Python console entry point instead of an operating
 system-specific launcher. Every push is tested on Ubuntu and Windows with
-Python 3.10 and 3.13 by GitHub Actions.
+Python 3.10 and 3.13, plus a Python 3.11 Conda environment on Ubuntu, by GitHub
+Actions.
 
 No C/C++ compilation is normally required because the supported Python
 versions have binary wheels for NumPy, SciPy, PyWavelets, pandas,
@@ -221,12 +222,57 @@ sudo apt-get update
 sudo apt-get install -y python3-venv
 ```
 
+If `apt` is unavailable, returns a mirror/proxy error, or the system Python is
+3.8, use the Conda installation below. The project requires Python 3.10 or
+newer, so installing `python3.8-venv` is not sufficient for this repository.
+
 ## Installation
 
 Python 3.10 or newer is required. Python 3.14.5 was used for the included
 benchmark.
 
-### Linux
+### Linux with Conda (recommended for Ubuntu 20.04)
+
+This method does not use the system Python, `ensurepip`, or the Ubuntu APT
+mirror:
+
+```bash
+git clone https://github.com/xymshry/PCGHE.git
+cd PCGHE
+conda env create -f environment.yml
+conda activate pcghe
+python --version
+pcghe-ecg --help
+```
+
+The environment file creates an isolated environment named `pcghe` with
+Python 3.11 and installs this project in editable mode with its test
+dependencies.
+
+If `conda activate` reports that the shell is not initialized, initialize it
+for the current Bash session:
+
+```bash
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate pcghe
+```
+
+Alternatively, do not activate the environment and run every command through
+Conda:
+
+```bash
+conda run -n pcghe python -m pytest
+conda run -n pcghe pcghe-ecg download --data-dir data/mitdb
+conda run -n pcghe pcghe-ecg run --data-dir data/mitdb --output-dir results/main --feature dwt --pca-components 32
+```
+
+To update an existing environment after pulling repository changes:
+
+```bash
+conda env update -n pcghe -f environment.yml --prune
+```
+
+### Linux with venv
 
 ```bash
 git clone https://github.com/xymshry/PCGHE.git
@@ -259,6 +305,22 @@ scikit-learn   scaling, PCA, logistic regression, metrics
 pandas         CSV result tables
 matplotlib     ROC, precision-recall, and confusion-matrix plots
 ```
+
+### Ubuntu `ensurepip` / APT troubleshooting
+
+The following error is caused by the operating-system Python installation, not
+by PCGHE:
+
+```text
+The virtual environment was not created successfully because ensurepip is not
+available.
+```
+
+On Ubuntu 20.04, the suggested `python3.8-venv` package still provides Python
+3.8, while PCGHE requires Python 3.10 or newer. If the configured APT mirror
+also returns HTTP 502, do not keep retrying that package solely for PCGHE. Use
+the Conda method above to create a Python 3.11 environment independently of
+APT.
 
 ## Quick start
 

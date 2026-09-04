@@ -35,3 +35,27 @@ jobs:
 
       - name: Check command-line entry point
         run: pcghe-ecg --help
+
+  conda-linux:
+    name: Ubuntu / Conda / Python 3.11
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create environment from environment.yml
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: pcghe
+          environment-file: environment.yml
+          miniforge-version: latest
+          use-mamba: true
+
+      - name: Run tests
+        shell: bash -el {0}
+        run: python -m pytest
+
+      - name: Check command-line entry point
+        shell: bash -el {0}
+        run: pcghe-ecg --help
